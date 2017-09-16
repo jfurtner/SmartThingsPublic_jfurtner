@@ -24,15 +24,31 @@ definition(
     iconX3Url: "https://s3.amazonaws.com/smartapp-icons/SafetyAndSecurity/Cat-SafetyAndSecurity@3x.png")
 
 preferences {
-	section("App") {
-    	input "masterAlarm", "capability.alarm",multiple:false,title:"Master alarm switch"
-		input "chimes", "capability.switchLevel", multiple:true, title:"Chime dimmer switches"
+    section('Master') {
+        input "masterAlarm", "capability.alarm",multiple:false,title:"Master alarm switch"
+    }
+    section('Sirens') {
+        input "chimes", "capability.switchLevel", multiple:true, title:"Chime dimmer switches"
+        input "chimeNumber", "number", range:"1..10", title:"Chime number to use"
         input "sirensLevel1", "capability.alarm", multiple:true, title:"Siren 1 alarms", required:false
         input "sirensLevel2", "capability.alarm", multiple:true, title:"Siren 2 alarms", required:false
-        input "chimeNumber", "number", range:"1..10", title:"Chime number to use"
+    }
+    section('Delays') {
         input "delaySiren1", "number", range:"1..300",title:"Siren 1 delay", description:"Delay between chime and when first siren triggered in seconds"
         input "delaySiren2", "number", range:"0..1800",title:"Siren 2 delay",description:"Delay between first siren and when second siren triggered in seconds"
         input "alarmDuration", "number", range:"0..300", title:"Duration of all alarms in minutes"
+    }
+    section("Send Notifications?") {
+        input("notificationMessage", 'text', title:'Notification message', required:false)
+        input("notificationRecipients", "contact", title: "Send notifications to", required:false) {
+            input "phone", "phone", title: "Warn with text message (optional)",
+                description: "Phone Number", required: false
+        }
+
+    }
+    section('Debugging') {
+		input "debugEnabled", "boolean", title:'Log debug events', required: false, default: false
+        input "traceEnabled", "boolean", title:'Log trace events', required: false, default: false
 	}
 }
 
@@ -62,7 +78,7 @@ def alarmHandler(evt){
     }
     else
     {    
-    	startChime()
+    	startChimes()
     }
 }
 
@@ -98,6 +114,12 @@ def startChimes(){
         chimes.setLevel(chimeNumber*10)
         logTrace("Delay for $delaySiren1 seconds")
         runIn(delaySiren1, startSiren1)
+        // check that Contact Book is enabled and recipients selected
+        if (location.contactBookEnabled && notificationRecipients) {
+            sendNotificationToContacts(notificationMessage, notificationRecipients)
+        } else if (phone) { // check that the user did select a phone number
+            sendSms(phone, notificationMessage)
+        }
     }
     else
     {
@@ -136,11 +158,13 @@ private getDebugOutputSetting() {
 
 
 private logDebug(msg) {
-	if (debugOutputSetting) {
+	if (debugEnabled) {
 		log.debug "$msg"
 	}
 }
 
 private logTrace(msg) {
-	log.trace "$msg"
+	if (traceEnabled) {
+    	log.trace "$msg"
+    }
 }
