@@ -27,24 +27,20 @@ definition(
 
 preferences {
 	section('Options') {	
+    	input 'enabled', 'boolean', title:'Enabled', required:false, default:true
         input 'modes', 'mode', title: 'Run when mode is', required: false, multiple: true
-    	input 'people', 
-        	'capability.presenceSensor', 
-        	title: 'Send push notification when any of these people present', 
-            multiple: true, 
-            required: true
-        //mode(name: 'modesToRunIn', title: 'Select mode(s) in which to execute', multiple: true, required: true)
-        input 'hoursBetweenUpdates', 'number', 
-        	title: 'Number of hours between updates', 
-            defaultValue:1,
-            range: '0..23',
-            required: true
+    	input 'people', 'capability.presenceSensor', title: 'Send push notification when any of these people present', multiple: true, required: true
+        input 'hoursBetweenUpdates', 'number', title: 'Number of hours between updates', defaultValue:1, range: '0..23', required: true
+        
     }
 	section("Outside") {
 		input "outsideTemperature", "capability.temperatureMeasurement", title: 'Select exterior temperature sensor', required: true
 	}
     section("Inside") {
     	input "insideTemperature", "capability.temperatureMeasurement", title: 'Select interior temperature sensor', required: true
+    }
+    section('Debugging') {
+    	input "debugEnabled", 'boolean', title:'Debugging messages enabled', required:false, default:false
     }
 }
 
@@ -110,12 +106,20 @@ def validPersonPresent() {
 }
 
 def checkTemperature(evt) {
-	if (!inValidMode()) {
-    	return
+	if (!enabled) {
+    	logWarn("Not enabled");
+        return;
     }
-    if (!validPersonPresent) {
-    	return
+    if (!inValidMode()) {
+    	logWarn("Not in valid mode");
+    	return;
     }
+    if (!validPersonPresent()) {
+    	logWarn("Important people not present!");
+    	return;
+    }
+    
+    
     logDebug( 'Initialization')
     def msg = ''
     def outside = outsideTemperature.currentTemperature
@@ -161,7 +165,15 @@ def checkTemperature(evt) {
     }
 }
 
+def logWarn(msg)
+{
+	log.warn msg
+}
+
 def logDebug(msg)
 {
-	// log.debug msg
+	if (debugEnabled)
+    {
+		log.debug msg
+    }
 }
