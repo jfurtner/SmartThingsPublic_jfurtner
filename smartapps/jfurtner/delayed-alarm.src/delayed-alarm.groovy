@@ -158,13 +158,13 @@ private getDebugOutputSetting() {
 
 
 private logDebug(msg) {
-	if (debugEnabled) {
+	if (debugEnabled == 'true') {
 		log.debug "$msg"
 	}
 }
 
 private logTrace(msg) {
-	if (traceEnabled) {
+	if (traceEnabled == 'true') {
     	log.trace "$msg"
     }
 }

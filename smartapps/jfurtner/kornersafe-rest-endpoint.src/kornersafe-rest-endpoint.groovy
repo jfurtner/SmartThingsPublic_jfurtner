@@ -29,6 +29,10 @@ preferences {
         input "kornerHubDevice", "capability.contactSensor", multiple: false, required: true, title:'Kornersafe hub device'
         input "updateFrequency", "number", required:true, range: "0-14400", title:"Frequency of updates"
 	}
+    section('Debugging') {
+        input "debugEnabled", 'boolean', required:false, default: false, title:'Debugging enabled'
+        input "traceEnabled", 'boolean', required:false, default: false, title:'Tracing enabled'
+    }
 }
 mappings {
 	path('/status/:status') {
@@ -153,9 +157,15 @@ def send(Boolean stateEvent, Boolean alarmEvent)
 }
 
 def logDebug(msg) {
-	log.debug msg
+	if (debugEnabled == 'true')
+    {
+		log.debug msg
+    }
 }
 
 def logTrace(msg) {
-	log.debug msg
+	if (traceEnabled == 'true')
+    {
+		log.debug msg
+    }
 }

@@ -60,7 +60,15 @@ def updated() {
 
 def initialize() {
 	logDebug( 'smartapp init')
-	runEvery15Minutes(checkTemperature)
+    if (enabled == 'true')
+    {
+    	logDebug('Setting schedule')
+		runEvery15Minutes(checkTemperature)
+    }
+    else
+    {
+    	logDebug('Not scheduling checks')
+    }
     if (state.lastNotificationOutLTIn == null) {
     	state.lastNotificationOutLTIn = initDate()
     }
@@ -106,10 +114,6 @@ def validPersonPresent() {
 }
 
 def checkTemperature(evt) {
-	if (!enabled) {
-    	logWarn("Not enabled");
-        return;
-    }
     if (!inValidMode()) {
     	logWarn("Not in valid mode");
     	return;
@@ -172,7 +176,7 @@ def logWarn(msg)
 
 def logDebug(msg)
 {
-	if (debugEnabled)
+	if (debugEnabled == 'true')
     {
 		log.debug msg
     }
