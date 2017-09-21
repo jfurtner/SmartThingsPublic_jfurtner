@@ -40,6 +40,9 @@ metadata {
             ,"logEvent"
         	])
 	}
+    preferences {
+    	input "debugEnabled", 'bool', title:'Debug enabled'
+    }
 }
 
 def configure() {
@@ -73,7 +76,8 @@ def enrollResponse() {
 }
 
 def logDebug(String message) {
-	log.debug(message)
+	if (debugEnabled)
+		log.debug(message)
     //sendEvent(name: 'phraseSpoken', value: message)
 }
 

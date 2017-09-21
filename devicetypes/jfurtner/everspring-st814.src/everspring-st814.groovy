@@ -105,6 +105,11 @@ metadata
 		main( ["temperature", "humidity"] )
 		details( ["temperature", "humidity", "alarm", "battery", "configure"] )
 	}
+    
+    preferences
+    {    	
+        input "debugEnabled", 'bool', title: 'Debugging enabled', displayDuringSetup: true
+    }
 }
 
 /** 
@@ -119,7 +124,7 @@ def parse(String description)
 
 	if ( description == "updated" )
 	{
-		log.debug "event description: ${description} - updating battery status"
+		logDebug "event description: ${description} - updating battery status"
 		get_battery = true
 	}
 	else
@@ -133,7 +138,7 @@ def parse(String description)
 		{
 			result << zwaveEvent( cmd )
 
-			log.debug "cmd.CMD=8407; result=${result} - updating battery status"
+			logDebug "cmd.CMD=8407; result=${result} - updating battery status"
 			get_battery = true
 		}	
 		else
@@ -149,19 +154,19 @@ def parse(String description)
 		/* device wakes up roughly every hour */
 		def age = last ? (new Date().time - last.date.time)/60000 : 10
 
-		log.debug "Battery status was last checked ${age} minute(s) ago"
+		logDebug "Battery status was last checked ${age} minute(s) ago"
 
 		/* don't check too often if woken up more frequently */
 		if( age >= 10 ) 
 		{
-			log.debug "Battery status is outdated, requesting battery report"
+			logDebug "Battery status is outdated, requesting battery report"
 			result << new physicalgraph.device.HubAction(zwave.batteryV1.batteryGet().format())
 		}
 
 		result << new physicalgraph.device.HubAction(zwave.wakeUpV1.wakeUpNoMoreInformation().format())
 	}
 
-	log.debug "Parse returned: ${result} for cmd=${cmd} description=${description}"
+	logDebug "Parse returned: ${result} for cmd=${cmd} description=${description}"
 	return result
 }
 
@@ -182,7 +187,7 @@ def zwaveEvent(physicalgraph.zwave.commands.alarmv1.AlarmReport cmd)
 {
 	def map = [:]
 
-	log.debug "AlarmReport cmd: ${cmd.toString()}}"
+	logDebug "AlarmReport cmd: ${cmd.toString()}}"
 
     if(( cmd.alarmType == 2 ) && ( cmd.alarmLevel == 1 ))
 	{
@@ -201,7 +206,7 @@ def zwaveEvent(physicalgraph.zwave.commands.alarmv1.AlarmReport cmd)
 
 def zwaveEvent(physicalgraph.zwave.commands.sensormultilevelv2.SensorMultilevelReport cmd)
 {
-	log.debug "SensorMultilevelReport cmd: ${cmd.toString()}}"
+	logDebug "SensorMultilevelReport cmd: ${cmd.toString()}}"
 
 	def map = [:]
 	switch( cmd.sensorType ) 
@@ -238,7 +243,7 @@ def zwaveEvent(physicalgraph.zwave.commands.batteryv1.BatteryReport cmd)
 
 def zwaveEvent(physicalgraph.zwave.Command cmd) 
 {
-	log.debug "Catchall reached for cmd: ${cmd.toString()}"
+	logDebug "Catchall reached for cmd: ${cmd.toString()}"
 	[:]
 }
 
@@ -254,4 +259,12 @@ def configure()
         /* report a humidity change of 5 percent */
         zwave.configurationV1.configurationSet(parameterNumber: 8, size: 1, scaledConfigurationValue: 5).format()
 	]) 
+}
+
+def logDebug(msg)
+{
+	if (debugEnabled == 'true')
+    {
+    	log.debug msg
+    }
 }

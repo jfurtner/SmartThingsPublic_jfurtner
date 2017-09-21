@@ -13,6 +13,10 @@ metadata {
     fingerprint profileId: "0104", deviceId: "0401", inClusters: "0000,0003,0500", outClusters: "0003,0501"
     }
 
+	preferences {
+    	input "debugEnabled", 'bool', title: 'Debug enabled'
+    }
+
     tiles(scale:2) {
 	    standardTile("button", "device.button", width: 2, height: 2, canChangeIcon: true ) {
 		    state "default", label: '', icon: "st.unknown.zwave.remote-controller", backgroundColor: "#ffffff"
@@ -104,7 +108,7 @@ def configure(){
 }
 
 def logDebug(String message) {
-	log.debug(message)
+	if (debugEnabled)
+		log.debug(message)
     //sendEvent(name: 'phraseSpoken', value: message)
-    sendEvent(name: 'logEvent', value: message)
 }

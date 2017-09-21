@@ -40,8 +40,8 @@ definition (name: "KornerSafe Alarm", namespace: "jfurtner", author: "Jamie Furt
     	input("deviceIP", "string", title:"IP Address", required:true, displayDuringSetup:true)
         input("devicePort", "number", title:"HTTP Port (i.e. 80 - HTTP only supported)", required:true, displayDuringSetup:true)
         input("devicePage", "string", title:"HTTP endpoint (i.e. '/kornersafe.php')", required:true, displayDuringSetup:true)
-        input("debugOutput", "bool", title: "Enable debug logging?", defaultValue: true, required: false)
-        input("traceOutput", "bool", title: "Enable trace logging?", defaultValue: false, required: false)
+        input("debugEnabled", "bool", title: "Enable debug logging?", defaultValue: true, required: false, displayDuringSetup: true)
+        input("traceEnabled", "bool", title: "Enable trace logging?", defaultValue: false, required: false, displayDuringSetup: true)
     }
 
 	tiles(scale:2) {
@@ -67,7 +67,7 @@ definition (name: "KornerSafe Alarm", namespace: "jfurtner", author: "Jamie Furt
 
 def updated() {
 	logDebug("Updated with settings: ${settings}")
-	setDeviceNetworkId(deviceIP, devicePort)
+	setDeviceNetworkId_custom(deviceIP, devicePort)
 	logDebug("Network ID: ${device.networkId}")
 }
 
@@ -172,7 +172,7 @@ private def setSwitch(String onOff)
 
 def hubAction(String action) {
 	logTrace('INIT hubAction')
-    setDeviceNetworkId(deviceIP, devicePort)
+    setDeviceNetworkId_custom(deviceIP, devicePort)
     
     def jsonBody = new groovy.json.JsonBuilder([
     	"appUrl":"${state.appUrl}",
@@ -195,13 +195,13 @@ def hubAction(String action) {
 
 def logDebug(msg)
 {
-	if (debugOutput)
+	if (debugEnabled)
         log.debug msg
 }
 
 def logTrace(msg)
 {
-	if (traceOutput)
+	if (traceEnabled)
 		log.trace msg
 }
 
@@ -210,7 +210,7 @@ if (state.dni != null && state.dni != "" && device.deviceNetworkId != state.dni)
    device.deviceNetworkId = state.dni
 }
 }
-private setDeviceNetworkId(ip,port){
+private setDeviceNetworkId_custom(ip,port){
 	logTrace('INIT setDeviceNetworkId')
     logTrace("IP: $ip port:$port")
   	def iphex = convertIPtoHex(ip)
