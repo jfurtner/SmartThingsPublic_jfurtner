@@ -54,6 +54,7 @@ def updated() {
 	logDebug( 'smartapp updated')
 	logDebug( "Updated with settings: ${settings}")
 
+	unschedule();
 	unsubscribe()
 	initialize()
 }
@@ -121,8 +122,7 @@ def checkTemperature(evt) {
     if (!validPersonPresent()) {
     	logWarn("Important people not present!");
     	return;
-    }
-    
+    }    
     
     logDebug( 'Initialization')
     def msg = ''
