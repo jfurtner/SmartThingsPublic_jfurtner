@@ -19,9 +19,10 @@ definition(
     author: "Jamie Furtner",
     description: "Endpoint for KornerSafe",
     category: "Safety & Security",
-    iconUrl: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience.png",
-    iconX2Url: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience@2x.png",
-    iconX3Url: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience@2x.png")
+    iconUrl: "https://cdn.rawgit.com/jfurtner/SmartThingsPublic_jfurtner/4ed736e6/icons/Korner-Stroke%401X.png",
+    iconX2Url: "https://cdn.rawgit.com/jfurtner/SmartThingsPublic_jfurtner/4ed736e6/icons/Korner-Stroke%402X.png"
+    //iconX3Url: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience@2x.png"
+    )
 
 
 preferences {
