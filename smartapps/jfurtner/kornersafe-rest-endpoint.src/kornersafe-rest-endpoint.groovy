@@ -38,7 +38,7 @@ preferences {
 mappings {
 	path('/status/:status') {
     	action: [
-        	GET: 'updateStatus'
+            POST: 'updateStatus'
         	]
         }
 }
@@ -125,25 +125,27 @@ def scheduledUpdateRunIn() {
 def updateStatus() {
 	logTrace('INIT updateStatus')
 	def st = params.status
+    def commandOutput = request.JSON?.commandOutput
+    logTrace("Command output: $commandOutput")
     logTrace("Status: $st")
     
     switch (st)
     {
     	case 'DISARM':
-        	send(false, false)
+        	send(false, false, commandOutput)
         	break;
         case 'ARM':
-        	send(true, false)
+        	send(true, false, commandOutput)
         	break;
         case 'ALARM':
-        	send(true, true)
+        	send(true, true, commandOutput)
         	break;
         default:
         	logDebug("Unknown status $st")
     }
 }
 
-def send(Boolean stateEvent, Boolean alarmEvent)
+def send(Boolean stateEvent, Boolean alarmEvent, String currentStatusMessage)
 {
 	logTrace('INIT send')
 	if (stateEvent)
@@ -155,6 +157,8 @@ def send(Boolean stateEvent, Boolean alarmEvent)
     	kornerHubDevice.setOpen()
     else
     	kornerHubDevice.setClosed()
+    
+    kornerHubDevice.setKornerCurrentStatus(currentStatusMessage)
 }
 
 def logDebug(msg) {
