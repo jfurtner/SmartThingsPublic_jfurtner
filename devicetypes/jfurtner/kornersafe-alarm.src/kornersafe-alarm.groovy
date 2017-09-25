@@ -28,8 +28,11 @@ definition (name: "KornerSafe Alarm", namespace: "jfurtner", author: "Jamie Furt
         command "setOn"
         command "setOpen"
         command "setClosed"
-        //attribute "message", "string"
+        attribute "message", "string"
+        attribute "previousMessage", "string"
+        attribute "bareMessage", "string"
         command "setAPIEndpoints", ["string", "string"]
+        command "setKornerCurrentStatus", ["string"]
 	}
     
 
@@ -58,10 +61,12 @@ definition (name: "KornerSafe Alarm", namespace: "jfurtner", author: "Jamie Furt
             state 'closed', label: 'Ok', icon: 'st.alarm.beep.beep', backgroundColor: '#d1ffe7'
         	state 'open', label: 'Alarm', icon: 'st.alarm.alarm.alarm', backgroundColor: '#e86d13'
         }
-/*        valueTile('message', 'device.message', width:6, height:2) {
-        	state 'message', label:'${currentValue}'
+        valueTile('message', 'device.message', width:6, height:2) {
+        	state 'message', label:'Current state: ${currentValue}'
         }
-*/
+        valueTile('previousMessage', 'device.previousMessage', width:6, height:2) {
+        	state 'previousMessage', label:'Previous state: ${currentValue}'
+        }
 	}
 }
 
@@ -85,6 +90,22 @@ def setAPIEndpoints(String newAppUrl, String newAppToken)
     state.appToken = newAppToken
 	logTrace("URL: ${state.appUrl}")
     logTrace("Token: ${state.appToken}")
+}
+
+def setKornerCurrentStatus(String statusMessage)
+{
+	logTrace('INIT kornerCurrentStatus')
+	def dt = new Date()
+    def completeMessage = "$dt $statusMessage"
+    def curMsg = device.currentValue("bareMessage")
+    logDebug("$curMsg")
+    if (curMsg != statusMessage)
+    {
+    	logTrace("Updated message: $completeMessage")
+        sendEvent(createEvent(name:"previousMessage", value: device.currentValue("message")))
+		sendEvent(createEvent(name:"message", value:completeMessage))
+        sendEvent(createEvent(name:"bareMessage", value: statusMessage))
+    }
 }
 
 def parse(msg) {
@@ -139,16 +160,6 @@ def setClosed()
 	logTrace('INIT setClosed')
     setContact('closed')
 }
-
-/*private def sendMessage(msg)
-{
-	logTrace('INIT sendMessage')
-	def dt = new Date()
-    def completeMessage = "$dt $msg"
-    logTrace("Message: $completeMessage")
-	sendEvent(createEvent(name:"message", value:completeMessage))
-}*/
-
 
 private def setContact(String openClosed)
 {
