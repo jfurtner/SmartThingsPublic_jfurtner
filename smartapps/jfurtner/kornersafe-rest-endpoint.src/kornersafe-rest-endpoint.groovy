@@ -126,26 +126,30 @@ def updateStatus() {
 	logTrace('INIT updateStatus')
 	def st = params.status
     def commandOutput = request.JSON?.commandOutput
-    logTrace("Command output: $commandOutput")
-    logTrace("Status: $st")
+    logTrace("Status: $st, current status: $commandOutput")
     
+	kornerHubDevice.setKornerCurrentStatus(commandOutput)
+
     switch (st)
     {
     	case 'DISARM':
-        	send(false, false, commandOutput)
+        	send(false, false)
         	break;
         case 'ARM':
-        	send(true, false, commandOutput)
+        	send(true, false)
         	break;
         case 'ALARM':
-        	send(true, true, commandOutput)
+        	send(true, true)
         	break;
+        case 'UNKNOWN':
+        	log.error 'State is currently UNKNOWN!'
+            break;
         default:
         	logDebug("Unknown status $st")
     }
 }
 
-def send(Boolean stateEvent, Boolean alarmEvent, String currentStatusMessage)
+def send(Boolean stateEvent, Boolean alarmEvent)
 {
 	logTrace('INIT send')
 	if (stateEvent)
@@ -157,8 +161,6 @@ def send(Boolean stateEvent, Boolean alarmEvent, String currentStatusMessage)
     	kornerHubDevice.setOpen()
     else
     	kornerHubDevice.setClosed()
-    
-    kornerHubDevice.setKornerCurrentStatus(currentStatusMessage)
 }
 
 def logDebug(msg) {
