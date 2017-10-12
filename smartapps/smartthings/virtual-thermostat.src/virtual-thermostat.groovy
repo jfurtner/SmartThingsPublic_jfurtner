@@ -46,18 +46,20 @@ preferences {
 	section("Select 'heat' for a heater and 'cool' for an air conditioner..."){
 		input "mode", "enum", title: "Heating or cooling?", options: ["heat","cool"]
 	}
+    section('Debugging') {
+        input "debugEnabled", 'boolean', required:false, default: false, title:'Debugging enabled'
+        input "traceEnabled", 'boolean', required:false, default: false, title:'Tracing enabled'
+    }
 }
 
 def installed()
 {
-	subscribe(sensor, "temperature", temperatureHandler)
-	if (motion) {
-		subscribe(motion, "motion", motionHandler)
-	}
+	updated()
 }
 
 def updated()
 {
+	logDebug("Installing with settings: ${settings}")
 	unsubscribe()
 	subscribe(sensor, "temperature", temperatureHandler)
 	if (motion) {
@@ -67,58 +69,77 @@ def updated()
 
 def temperatureHandler(evt)
 {
+	logTrace("Temperature changed: ${evt.doubleValue}")
 	def isActive = hasBeenRecentMotion()
+    logTrace("Active: $isActive; emergencySetpoint: $emergencySetpoint")
 	if (isActive || emergencySetpoint) {
 		evaluate(evt.doubleValue, isActive ? setpoint : emergencySetpoint)
 	}
 	else {
-		outlets.off()
+		enableDisableOutlets(false)
 	}
+}
+
+def enableDisableOutlets(Boolean onOff)
+{
+	logTrace("outlets enable:$onOff")
+	if (onOff)
+    	outlets.on()
+    else
+    	outlets.off()
 }
 
 def motionHandler(evt)
 {
+	logTrace "MOTIONHANDLER (${evt})"
 	if (evt.value == "active") {
+    	logTrace("Motion active")
 		def lastTemp = sensor.currentTemperature
 		if (lastTemp != null) {
 			evaluate(lastTemp, setpoint)
 		}
 	} else if (evt.value == "inactive") {
 		def isActive = hasBeenRecentMotion()
-		log.debug "INACTIVE($isActive)"
+		logTrace "Motion currently inactive. isActive: $isActive"
 		if (isActive || emergencySetpoint) {
 			def lastTemp = sensor.currentTemperature
+            logTrace("lastTemp: $lastTemp")
 			if (lastTemp != null) {
 				evaluate(lastTemp, isActive ? setpoint : emergencySetpoint)
 			}
 		}
 		else {
-			outlets.off()
+			enableDisableOutlets(false)
 		}
 	}
 }
 
 private evaluate(currentTemp, desiredTemp)
 {
-	log.debug "EVALUATE($currentTemp, $desiredTemp)"
+	logDebug "EVALUATE(current:$currentTemp, desired:$desiredTemp)"
 	def threshold = 1.0
 	if (mode == "cool") {
 		// air conditioner
 		if (currentTemp - desiredTemp >= threshold) {
-			outlets.on()
+			enableDisableOutlets(true)
 		}
 		else if (desiredTemp - currentTemp >= threshold) {
-			outlets.off()
+			enableDisableOutlets(false)
 		}
+        else
+        	logTrace "no change"
 	}
 	else {
+    	logDebug("heat mode")
 		// heater
 		if (desiredTemp - currentTemp >= threshold) {
-			outlets.on()
+			enableDisableOutlets(true)
 		}
 		else if (currentTemp - desiredTemp >= threshold) {
-			outlets.off()
+			enableDisableOutlets(false)
 		}
+        else
+        	logTrace "no change"
 	}
 }
 
@@ -141,3 +162,16 @@ private hasBeenRecentMotion()
 	isActive
 }
 
+def logDebug(msg) {
+	if (debugEnabled == 'true')
+    {
+		log.debug msg
+    }
+}
+
+def logTrace(msg) {
+	if (traceEnabled == 'true')
+    {
+		log.debug msg
+    }
+}
