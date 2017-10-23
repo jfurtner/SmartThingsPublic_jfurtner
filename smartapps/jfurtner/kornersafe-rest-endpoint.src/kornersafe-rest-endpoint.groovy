@@ -17,7 +17,7 @@ definition(
     name: "KornerSafe REST endpoint",
     namespace: "jfurtner",
     author: "Jamie Furtner",
-    description: "Endpoint for KornerSafe",
+    description: "Endpoint for KornerSafe. Polls device and receives update from local service.",
     category: "Safety & Security",
     iconUrl: "https://cdn.rawgit.com/jfurtner/SmartThingsPublic_jfurtner/4ed736e6/icons/Korner-Stroke%401X.png",
     iconX2Url: "https://cdn.rawgit.com/jfurtner/SmartThingsPublic_jfurtner/4ed736e6/icons/Korner-Stroke%402X.png"
