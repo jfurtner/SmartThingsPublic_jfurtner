@@ -25,8 +25,10 @@ metadata {
 		capability "Health Check"
 		capability "Configuration"
 
+		// Generic
 		fingerprint deviceId: "0x4003", inClusters: "0x98"
 		fingerprint deviceId: "0x4004", inClusters: "0x98"
+		// KwikSet
 		fingerprint mfr:"0090", prod:"0001", model:"0236", deviceJoinName: "KwikSet SmartCode 910 Deadbolt Door Lock"
 		fingerprint mfr:"0090", prod:"0003", model:"0238", deviceJoinName: "KwikSet SmartCode 910 Deadbolt Door Lock"
 		fingerprint mfr:"0090", prod:"0001", model:"0001", deviceJoinName: "KwikSet SmartCode 910 Contemporary Deadbolt Door Lock"
@@ -35,16 +37,22 @@ metadata {
 		fingerprint mfr:"0090", prod:"0003", model:"0440", deviceJoinName: "KwikSet SmartCode 914 Deadbolt Door Lock"
 		fingerprint mfr:"0090", prod:"0001", model:"0642", deviceJoinName: "KwikSet SmartCode 916 Touchscreen Deadbolt Door Lock"
 		fingerprint mfr:"0090", prod:"0003", model:"0642", deviceJoinName: "KwikSet SmartCode 916 Touchscreen Deadbolt Door Lock"
+		// Schlage
 		fingerprint mfr:"003B", prod:"6341", model:"0544", deviceJoinName: "Schlage Camelot Touchscreen Deadbolt Door Lock"
 		fingerprint mfr:"003B", prod:"6341", model:"5044", deviceJoinName: "Schlage Century Touchscreen Deadbolt Door Lock"
 		fingerprint mfr:"003B", prod:"634B", model:"504C", deviceJoinName: "Schlage Connected Keypad Lever Door Lock"
+		// Yale
 		fingerprint mfr:"0129", prod:"0002", model:"0800", deviceJoinName: "Yale Touchscreen Deadbolt Door Lock" // YRD120
 		fingerprint mfr:"0129", prod:"0002", model:"0000", deviceJoinName: "Yale Touchscreen Deadbolt Door Lock" // YRD220, YRD240
 		fingerprint mfr:"0129", prod:"0002", model:"FFFF", deviceJoinName: "Yale Touchscreen Lever Door Lock" // YRD220
 		fingerprint mfr:"0129", prod:"0004", model:"0800", deviceJoinName: "Yale Push Button Deadbolt Door Lock" // YRD110
 		fingerprint mfr:"0129", prod:"0004", model:"0000", deviceJoinName: "Yale Push Button Deadbolt Door Lock" // YRD210
 		fingerprint mfr:"0129", prod:"0001", model:"0000", deviceJoinName: "Yale Push Button Lever Door Lock" // YRD210
-		fingerprint mfr:"0129", prod:"8002", model:"0600", deviceJoinName: "Yale Assure Lock with Bluetooth"
+		fingerprint mfr:"0129", prod:"8002", model:"0600", deviceJoinName: "Yale Assure Lock" //YRD416, YRD426, YRD446
+		fingerprint mfr:"0129", prod:"0007", model:"0001", deviceJoinName: "Yale Keyless Connected Smart Door Lock"
+		fingerprint mfr:"0129", prod:"8004", model:"0600", deviceJoinName: "Yale Assure Lock Push Button Deadbolt" //YRD216
+		// Samsung
+		fingerprint mfr:"022E", prod:"0001", model:"0001", deviceJoinName: "Samsung Digital Lock" // SHP-DS705, SHP-DHP728, SHP-DHP525
 	}
 
 	simulator {
@@ -746,7 +754,8 @@ def zwaveEvent(UserCodeReport cmd) {
 		def codeName
 		
 		// Schlage locks sends a blank/empty code during code creation/updation where as it sends "**********" during scanning
-		if (!cmd.code && isSchlageLock()) {
+		// Some Schlage locks send "**********" during code creation also. The state check will work for them
+		if ((!cmd.code || state["setname$codeID"]) && isSchlageLock()) {
 			// this will be executed when the user tries to create/update a user code through the
 			// smart app or manually on the lock. This is specific to Schlage locks.
 			log.trace "[DTH] User code creation successful for Schlage lock"
@@ -767,14 +776,14 @@ def zwaveEvent(UserCodeReport cmd) {
 		} else {
 			// We'll land here during scanning of codes
 			codeName = getCodeName(lockCodes, codeID)
+			def changeType = getChangeType(lockCodes, codeID)
 			if (!lockCodes[codeID]) {
-				map.value = "$codeID set"
 				result << codeSetEvent(lockCodes, codeID, codeName)
 			} else {
-				map.value = "$codeID changed"
-				map.isStateChange = false
+				map.displayed = false
 			}
-			map.descriptionText = "${getStatusForDescription('set')} \"$codeName\""
+			map.value = "$codeID $changeType"
+			map.descriptionText = "${getStatusForDescription(changeType)} \"$codeName\""
 			map.data = [ codeName: codeName, lockName: deviceName ]
 		}
 	} else if(userIdStatus == 254 && isSchlageLock()) {
@@ -804,7 +813,7 @@ def zwaveEvent(UserCodeReport cmd) {
 				result << codeDeletedEvent(lockCodes, codeID)
 			} else {
 				map.value = "$codeID unset"
-				map.isStateChange = false
+				map.displayed = false
 				map.data = [ lockName: deviceName ]
 			}
 		}
@@ -1182,7 +1191,7 @@ def reloadAllCodes() {
 	sendEvent(name: "scanCodes", value: "Scanning", descriptionText: "Code scan in progress", displayed: false)
 	def lockCodes = loadLockCodes()
 	sendEvent(lockCodesEvent(lockCodes))
-	state.checkCode = 1
+	state.checkCode = state.checkCode ?: 1
 
 	def cmds = []
 	// Not calling validateAttributes() here because userNumberGet command will be added twice
@@ -1194,7 +1203,7 @@ def reloadAllCodes() {
 		cmds << secure(zwave.userCodeV1.usersNumberGet())
 	} else {
 		sendEvent(name: "maxCodes", value: state.codes, displayed: false)
-		cmds << requestCode(1)
+		cmds << requestCode(state.checkCode)
 	}
 	if(cmds.size() > 1) {
 		cmds = delayBetween(cmds, 4200)
