@@ -32,7 +32,7 @@ metadata {
 		fingerprint profileId: "0104", inClusters: "0000,0001,0003,0009,000A,0101,0020", outClusters: "000A,0019", manufacturer: "Yale", model: "YRD210 PB DB", deviceJoinName: "Yale Push Button Deadbolt Lock"
 		fingerprint profileId: "0104", inClusters: "0000,0001,0003,0009,000A,0101,0020", outClusters: "000A,0019", manufacturer: "Yale", model: "YRD220/240 TSDB", deviceJoinName: "Yale Touch Screen Deadbolt Lock"
 		fingerprint profileId: "0104", inClusters: "0000,0001,0003,0009,000A,0101,0020", outClusters: "000A,0019", manufacturer: "Yale", model: "YRL210 PB LL", deviceJoinName: "Yale Push Button Lever Lock"
-		fingerprint profileId: "0104", inClusters: "0000,0001,0003,0009,000A,0101,0020", outClusters: "000A,0019", manufacturer: "Yale", model: "YRD226/246 TSDB", deviceJoinName: "Yale Touch Screen Deadbolt Lock"
+		fingerprint profileId: "0104", inClusters: "0000,0001,0003,0009,000A,0101,0020", outClusters: "000A,0019", manufacturer: "Yale", model: "YRD226/246 TSDB", deviceJoinName: "Yale Assure Lock"
 		fingerprint profileId: "0104", inClusters: "0000,0001,0003,0004,0005,0009,0020,0101,0402,0B05,FDBD", outClusters: "000A,0019", manufacturer: "Kwikset", model: "SMARTCODE_DEADBOLT_5", deviceJoinName: "Kwikset 5-Button Deadbolt"
 		fingerprint profileId: "0104", inClusters: "0000,0001,0003,0004,0005,0009,0020,0101,0402,0B05,FDBD", outClusters: "000A,0019", manufacturer: "Kwikset", model: "SMARTCODE_LEVER_5", deviceJoinName: "Kwikset 5-Button Lever"
 		fingerprint profileId: "0104", inClusters: "0000,0001,0003,0004,0005,0009,0020,0101,0402,0B05,FDBD", outClusters: "000A,0019", manufacturer: "Kwikset", model: "SMARTCODE_DEADBOLT_10", deviceJoinName: "Kwikset 10-Button Deadbolt"
@@ -465,7 +465,7 @@ private def parseAttributeResponse(String description) {
 		responseMap.name = "battery"
 		responseMap.value = Math.round(Integer.parseInt(descMap.value, 16) / 2)
 		// Handling Yale locks incorrect battery reporting issue
-		if (isYaleLock()) {
+		if (reportsBatteryIncorrectly()) {
 			responseMap.value = Integer.parseInt(descMap.value, 16)
 		}
 		responseMap.descriptionText = "Battery is at ${responseMap.value}%"
@@ -1111,10 +1111,23 @@ def getLittleEndianHexString(numStr) {
  * @return true if the lock manufacturer is Yale, else false
  */
 def isYaleLock() {
-	if ("Yale" == device.getDataValue("manufacturer")) {
-		return true
-	}
-	return false
+	return "Yale" == device.getDataValue("manufacturer")
+}
+
+/**
+ * Utility function to check for specific models of Yale Lock that don't report battery correctly
+ *
+ * @return true if the lock has the bug
+ */
+def reportsBatteryIncorrectly() {
+	def badModels = [
+			"YRD220/240 TSDB",
+			"YRL220 TS LL",
+			"YRD210 PB DB",
+			"YRD220/240 TSDB",
+			"YRL210 PB LL",
+	]
+	return (isYaleLock() && device.getDataValue("model") in badModels)
 }
 
 /**
