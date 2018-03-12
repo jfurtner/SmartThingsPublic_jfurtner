@@ -12,7 +12,7 @@
  *
  */
 metadata {
-	definition (name: "Z-Wave Controller", namespace: "smartthings", author: "SmartThings") {
+	definition (name: "Z-Wave Controller", namespace: "smartthings", author: "SmartThings", runLocally: true, minHubCoreVersion: '000.017.0012', executeCommandsLocally: false) {
 
 		command "on"
 		command "off"
@@ -41,7 +41,7 @@ metadata {
 }
 
 def installed() {
-	if (zwaveInfo.zw && zwaveInfo.zw.cc?.contains("84")) {
+	if (zwaveInfo.cc?.contains("84")) {
 		response(zwave.wakeUpV1.wakeUpNoMoreInformation())
 	}
 }
