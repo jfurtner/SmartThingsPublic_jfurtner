@@ -105,7 +105,8 @@ def updateDeviceEndpoints()
     def url = "${apiServerUrl('/api/smartapps/installations')}/${app.id}/status"
     createAccessToken()
     def token = state.accessToken
-    kornerHubDevice.setAPIEndpoints(url, token)
+    //if (kornerHubDevice.state.appUrl != url || kornerHubDevice.state.appToken != token)
+    	kornerHubDevice.setAPIEndpoints(url, token)
 }
 
 def scheduledUpdate() {
@@ -128,7 +129,8 @@ def updateStatus() {
     def commandOutput = request.JSON?.commandOutput
     logTrace("Status: $st, current status: $commandOutput")
     
-	kornerHubDevice.setKornerCurrentStatus(commandOutput)
+    if (kornerHubDevice.message != commandOutput)
+		kornerHubDevice.setKornerCurrentStatus(commandOutput)
 
     switch (st)
     {
@@ -153,14 +155,18 @@ def send(Boolean stateEvent, Boolean alarmEvent)
 {
 	logTrace('INIT send')
 	if (stateEvent)
-    	kornerHubDevice.setOn()
+//    	if (kornerHubDevice.switch != 'on')
+    		kornerHubDevice.setOn()
     else
-    	kornerHubDevice.setOff()
+//    	if (kornerHubDevice.switch != 'off')
+    		kornerHubDevice.setOff()
     
     if (alarmEvent)
-    	kornerHubDevice.setOpen()
+//    	if (kornerHubDevice.contact != 'open')
+    		kornerHubDevice.setOpen()
     else
-    	kornerHubDevice.setClosed()
+//    	if (kornerHubDevice.contact != 'closed')
+    		kornerHubDevice.setClosed()
 }
 
 def logDebug(msg) {
