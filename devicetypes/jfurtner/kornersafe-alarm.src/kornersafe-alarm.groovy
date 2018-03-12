@@ -31,6 +31,8 @@ definition (name: "KornerSafe Alarm", namespace: "jfurtner", author: "Jamie Furt
         attribute "message", "string"
         attribute "previousMessage", "string"
         attribute "bareMessage", "string"
+        attribute "appUrl", "string"
+        attribute "appTokenEnd", "string"
         command "setAPIEndpoints", ["string", "string"]
         command "setKornerCurrentStatus", ["string"]
 	}
@@ -98,7 +100,7 @@ def setKornerCurrentStatus(String statusMessage)
 	def dt = new Date()
     def completeMessage = "$dt $statusMessage"
     def curMsg = device.currentValue("bareMessage")
-    logDebug("$curMsg")
+    logDebug("current message: $curMsg")
     if (curMsg != statusMessage)
     {
     	logTrace("Updated message: $completeMessage")
