@@ -24,10 +24,14 @@ definition(
     iconX3Url: "http://cdn.device-icons.smartthings.com/Entertainment/entertainment14-icn@3x.png")
 
 
+
 preferences {
 	section("Motion sensors") {
 		input "motionSensors", "capability.motionSensor", required: true, title: "Sensors", multiple: true
 	}
+    section("Presence sensor") {
+    	input "person", "capability.presenceSensor", required: true, title:"Who must be present to trigger?", multiple: false
+    }
     section("Limits") {
     	//input "modesToRunIn", "mode", title:"Select mode(s)", required:true,multiple:true
     	input "startTime", "time", title:"From",required:true
@@ -38,16 +42,20 @@ preferences {
     	input "computerMacAddress","text",title:"Computer MAC address (12 hex digits)",required:true
         input "secureCode","text",title:"Secure code (12 hex digits)",required:false
     }
+    section('Debugging') {
+    	input "debugEnabled", 'boolean', title:'Debug messages enabled', required:false, default:false
+        input "traceEnabled", 'boolean', title:'Trace messages enabled', required:false, default:false
+    }
 }
 
 def installed() {
-	log.debug "Installed with settings: ${settings}"
+	logDebug "Installed with settings: ${settings}"
 
 	initialize()
 }
 
 def updated() {
-	log.debug "Updated with settings: ${settings}"
+	logDebug "Updated with settings: ${settings}"
 
 	unsubscribe()
     unschedule()
@@ -55,31 +63,38 @@ def updated() {
 }
 
 def initialize() {
-	log.debug "initialize"
-    log.debug "Subscribing to motion sensors"
+	logDebug "initialize"
+    logDebug "Subscribing to motion sensors"
     subscribe(motionSensors, "motion", motionSensorActive)
 }
 
 def motionSensorActive(evt) {
-	log.debug "Motion sensor ${evt.getDevice()} fired"
+	logDebug "Motion sensor ${evt.getDevice()} fired"
     // get day of week
     def dateFormatter = new java.text.SimpleDateFormat("EEEE")
     dateFormatter.setTimeZone(location.timeZone)
     def dayOfWeek = dateFormatter.format(new Date())
-    log.debug "Day of week: $dayOfWeek"
+    logDebug "Day of week: $dayOfWeek"
     
     def dayCheck = daysOfWeek.contains(dayOfWeek)
     if (dayCheck)
     {
-    	log.debug "Valid day of week"
+    	logDebug "Valid day of week"
         def todayStart = timeToday(startTime, location.timeZone)
         def todayEnd = timeToday(endTime, location.timeZone)
-        log.debug "Calculated start/end: $todayStart / $todayEnd"
+        logTrace "Calculated start/end: $todayStart / $todayEnd"
 
         if (timeOfDayIsBetween(todayStart, todayEnd, new Date(), location.timeZone))
         {
-            log.debug "now between start/end"
-            wakeComputer()
+            logDebug "current time between start/end"
+            logTrace "Presence value: ${person.currentPresence}"
+            if (person.currentPresence == "present")
+            {
+            	logDebug "Person present"
+                sendNotification("Waking computer", [method: "push", event:"true"])
+            
+            	wakeComputer()
+            }
         }
     }
 }
@@ -87,12 +102,12 @@ def motionSensorActive(evt) {
 def wakeComputer() {
 	def mac = "$computerMacAddress".replaceAll(":","").replaceAll("-","")
     
-    log.debug "Using mac address: $mac 845"
+    logDebug "Using mac address: $mac 845"
     def hubAction
-    log.debug "Secure code value: '$secureCode'"
+    //logDebug "Secure code value: '$secureCode'"
     if (secureCode != null && secureCode != '')
     {
-    	log.debug "Secure code"
+    	logInfo "Wake wecure code"
         hubAction = new physicalgraph.device.HubAction (
             "wake on lan $mac",
             physicalgraph.device.Protocol.LAN,
@@ -102,7 +117,7 @@ def wakeComputer() {
     }
     else
     {
-    	log.debug "No secure code"
+    	logInfo "Wake with no secure code"
         hubAction = new physicalgraph.device.HubAction (
             "wake on lan $mac",
             physicalgraph.device.Protocol.LAN,
@@ -111,6 +126,31 @@ def wakeComputer() {
             )
     }
     
-    log.debug "HubAction: $hubAction"
+    logDebug "HubAction: $hubAction"
     sendHubCommand(hubAction)
+}
+
+def logInfo(msg)
+{
+	log.info msg
+}
+def logWarn(msg)
+{
+	log.warn msg
+}
+
+def logTrace(msg)
+{
+	if (traceEnabled == 'true')
+    {
+		log.trace msg
+    }
+}
+
+def logDebug(msg)
+{
+	if (debugEnabled == 'true')
+    {
+		log.debug msg
+    }
 }
