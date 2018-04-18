@@ -63,13 +63,13 @@ def updated() {
 }
 
 def initialize() {
-	logDebug "initialize"
+	logInfo "initialize"
     logDebug "Subscribing to motion sensors"
     subscribe(motionSensors, "motion", motionSensorActive)
 }
 
 def motionSensorActive(evt) {
-	logDebug "Motion sensor ${evt.getDevice()} fired"
+	logDebug "Starting motionSensorActive: ${evt.getDevice()} fired"
     // get day of week
     def dateFormatter = new java.text.SimpleDateFormat("EEEE")
     dateFormatter.setTimeZone(location.timeZone)
@@ -100,14 +100,15 @@ def motionSensorActive(evt) {
 }
 
 def wakeComputer() {
+	logDebug "Starting wakeComputer"
 	def mac = "$computerMacAddress".replaceAll(":","").replaceAll("-","")
     
-    logDebug "Using mac address: $mac 845"
+    logTrace "Using mac address: $mac"
     def hubAction
     //logDebug "Secure code value: '$secureCode'"
     if (secureCode != null && secureCode != '')
     {
-    	logInfo "Wake wecure code"
+    	logInfo "Wake with secure code"
         hubAction = new physicalgraph.device.HubAction (
             "wake on lan $mac",
             physicalgraph.device.Protocol.LAN,
@@ -126,7 +127,7 @@ def wakeComputer() {
             )
     }
     
-    logDebug "HubAction: $hubAction"
+    logTrace "HubAction: $hubAction"
     sendHubCommand(hubAction)
 }
 
