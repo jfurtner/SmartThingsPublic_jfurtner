@@ -21,9 +21,10 @@ definition(
     category: "Convenience",
     iconUrl: "http://cdn.device-icons.smartthings.com/Entertainment/entertainment14-icn.png",
     iconX2Url: "http://cdn.device-icons.smartthings.com/Entertainment/entertainment14-icn@2x.png",
-    iconX3Url: "http://cdn.device-icons.smartthings.com/Entertainment/entertainment14-icn@3x.png")
-
-
+    iconX3Url: "http://cdn.device-icons.smartthings.com/Entertainment/entertainment14-icn@3x.png"
+    )
+{
+}
 
 preferences {
 	section("Motion sensors") {
@@ -66,6 +67,8 @@ def initialize() {
 	logInfo "initialize"
     logDebug "Subscribing to motion sensors"
     subscribe(motionSensors, "motion", motionSensorActive)
+    
+    state.lastAlertSentDateTime = 0
 }
 
 def motionSensorActive(evt) {
@@ -91,7 +94,12 @@ def motionSensorActive(evt) {
             if (person.currentPresence == "present")
             {
             	logDebug "Person present"
-                sendNotification("Waking computer", [method: "push", event:"true"])
+                def lastAlertDifference = now() - state.lastAlertSentDateTime
+                if (lastAlertDifference > (5 * 60000))
+                {
+                    sendNotification("Waking computer", [method: "push", event:"true"])
+                    state.lastAlertSentDateTime = now()
+                }
             
             	wakeComputer()
             }
