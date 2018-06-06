@@ -36,13 +36,13 @@ preferences {
     }
 }
 
-def installed() {
+public def installed() {
 	logDebug("Installed with settings: ${settings}")
 
 	initialize()
 }
 
-def updated() {
+public def updated() {
 	logDebug("Updated with settings: ${settings}")
 
 	unsubscribe()
@@ -50,30 +50,10 @@ def updated() {
 	initialize()
 }
 
-def initialize() {
+public def initialize() {
 	logTrace("Initialize, subscribing to events")
 	subscribe(switchDevice, "switch", switchHandler)    
     subscribe(location, "alarmSystemStatus", alarmStatusHandler)
-}
-
-def switchHandler(evt) {
-	logTrace("Starting switch handler")
-	switch (evt.value)
-    {
-    	case "on":
-        	logDebug("On")
-            setAlarm(2, switchAlertNumber)
-        	break
-        case "off":
-        	logDebug("Off")
-            setAlarm(1, switchAlertNumber)
-        	break
-        default:
-        	logInfo("Unknown event value: ${evt.value}")
-            return
-    }
-    
-    sendPushMessage("${evt.displayName} is ${evt.value}")    
 }
 
 def alarmStatusHandler(evt) {
@@ -98,6 +78,26 @@ def alarmStatusHandler(evt) {
     }
     
     sendPushMessage("Alarm state is ${evt.value}")
+}
+
+def switchHandler(evt) {
+	logTrace("Starting switch handler")
+	switch (evt.value)
+    {
+    	case "on":
+        	logDebug("On")
+            setAlarm(2, switchAlertNumber)
+        	break
+        case "off":
+        	logDebug("Off")
+            setAlarm(1, switchAlertNumber)
+        	break
+        default:
+        	logInfo("Unknown event value: ${evt.value}")
+            return
+    }
+    
+    sendPushMessage("${evt.displayName} is ${evt.value}")    
 }
 
 private setAlarm(repeatCount, alertNumber) {
@@ -139,13 +139,13 @@ private someoneIsPresent() {
     return result
 }
 
-def logInfo(m) {
+private def logInfo(m) {
 	log.info m
 }
 
-def logTrace(m) {
+private def logTrace(m) {
 	log.trace m
 }
-def logDebug(m) {
+private def logDebug(m) {
 	log.debug m
 }
