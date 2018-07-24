@@ -40,11 +40,7 @@ preferences {
     }
     section("Send Notifications?") {
         input("notificationMessage", 'text', title:'Notification message', required:false)
-        input("notificationRecipients", "contact", title: "Send notifications to", required:false) {
-            input "phone", "phone", title: "Warn with text message (optional)",
-                description: "Phone Number", required: false
-        }
-
+        input "phone", "phone", title: "Warn with text message (optional)", description: "Phone Number", required: false
     }
     section('Debugging') {
 		input "debugEnabled", "boolean", title:'Log debug events', required: false, default: false
@@ -115,9 +111,7 @@ def startChimes(){
         logTrace("Delay for $delaySiren1 seconds")
         runIn(delaySiren1, startSiren1)
         // check that Contact Book is enabled and recipients selected
-        if (location.contactBookEnabled && notificationRecipients) {
-            sendNotificationToContacts(notificationMessage, notificationRecipients)
-        } else if (phone) { // check that the user did select a phone number
+ 		if (phone) { // check that the user did select a phone number
             sendSms(phone, notificationMessage)
         }
     }
