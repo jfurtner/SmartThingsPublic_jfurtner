@@ -14,6 +14,7 @@ metadata {
 		command "reset"
 
 		fingerprint mfr: "010F", prod: "0203", model: "2000"
+		fingerprint mfr: "010F", prod: "0203", model: "1000"
 	  }
 
 	tiles (scale: 2) {
@@ -156,12 +157,12 @@ def initialize() {
 	if (device.currentValue("numberOfButtons") != 6) { sendEvent(name: "numberOfButtons", value: 6) }
 
 	cmds << zwave.multiChannelAssociationV2.multiChannelAssociationGet(groupingIdentifier: 1) //verify if group 1 association is correct  
-	runIn(3,"syncStart")
+	runIn(3, "syncStart")
 	state.lastUpdated = now()
 	response(encapSequence(cmds,1000))
 }
 
-private syncStart() {
+def syncStart() {
 	boolean syncNeeded = false
 	parameterMap().each {
 		if(settings."$it.key" != null) {
@@ -201,7 +202,7 @@ private syncNext() {
 	}
 }
 
-private syncCheck() {
+def syncCheck() {
 	logging("${device.displayName} - Executing syncCheck()","info")
 	def failed = []
 	def incorrect = []
