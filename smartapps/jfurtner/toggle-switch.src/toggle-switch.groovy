@@ -17,7 +17,7 @@ definition(
     name: "Toggle switch",
     namespace: "jfurtner",
     author: "Jamie Furtner",
-    description: "Toggle a set of switches on/off (based on first in list) when master virtual switch is set on.",
+    description: "Toggle a set of switches on/off (based on first in list) when master virtual switch is set on, and toggle master virtual off again.",
     category: "Convenience",
     iconUrl: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience.png",
     iconX2Url: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience@2x.png",
@@ -71,5 +71,3 @@ def masterSwitchSet(evt){
     masterSwitch.off()
     
 }
-
-// TODO: implement event handlers
