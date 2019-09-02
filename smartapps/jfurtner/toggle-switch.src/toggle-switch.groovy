@@ -25,9 +25,14 @@ definition(
 
 
 preferences {
-	section("Title") {
-        input "masterSwitch", "capability.switch", required: true, title: "Master switch"
-        input "toggleSwitches", "capability.switch", required: true, multiple: true, title: "Toggle switches"
+	section("Run when toggled on, then toggle off") {
+        input "virtualSwitch", "capability.switch", required: true, title: "Virtual master switch"
+    }
+	section("Switches") {
+    	input "masterSwitch", "capability.switch", required: true, title: "Master device (used for state of set)"
+        input "toggleSwitches", "capability.switch", required: true, multiple: true, title: "Switches to match master"
+        input "switchesForceOff", "capability.switch", required: false, multiple: true, title: "Switches to turn off if master on"
+        
 	}
 }
 
@@ -45,29 +50,28 @@ def updated() {
 }
 
 def initialize() {
-	subscribe(masterSwitch, "switch.on", masterSwitchSet)
+	subscribe(virtualSwitch, "switch.on", virtualSwitchSet)
 }
 
-def masterSwitchSet(evt){
-	log.debug "masterSwitchSet called: $evt"
+def virtualSwitchSet(evt){
+	log.debug "virtualSwitchSet called: $evt"
     
-    def allCurStates = toggleSwitches.currentValue("switch")
-    def curState = allCurStates[0]
+    def masterSwitchState = masterSwitch.currentValue("switch")
     log.debug "$allCurStates : $curState"
     
-    if (curState == "on")
+    if (masterSwitchState == "on")
     {
     	toggleSwitches.off()
     }
-    else if (curState == "off")
+    else if (masterSwitchState == "off")
     {
     	toggleSwitches.on()
+        switchesForceOff.off()
     }
     else
     {
-    	log.error "Unknown switch state: $curState (all states: $allCurStates)"
+    	log.error "Unknown switch state: $masterSwitchState"
     }
     
-    masterSwitch.off()
-    
+    virtualSwitch.off()
 }
