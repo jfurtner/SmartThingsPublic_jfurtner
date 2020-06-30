@@ -24,9 +24,14 @@ definition(
     iconX3Url: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience@2x.png")
 
 preferences {
+	section("Description") {
+    	paragraph "When SmartThings state changes, invoke Wyze cam enable or disable events."
+    }
 	section() {
 		input "makerKey", "text", title: "IFTTT maker key"
+        paragraph "Invoked when in Away or Night modes"
         input "enableEventName", "text", title: "Enable event name", defaultValue: "enable_wyze"
+        paragraph "Invoked when in Home mode"
         input "disableEventName", "text", title: "Disable event name", defaultValue: "disable_wyze"
 	}
 }

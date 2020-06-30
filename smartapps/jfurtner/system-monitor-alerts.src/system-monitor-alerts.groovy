@@ -20,18 +20,22 @@ preferences {
     	paragraph "Send arm/disarm alerts though 'level' switches to indicate when system state changes. Can also push alert when main alarm sensor is turned on."
     }
 	section("Enable device") {
-    	input "enableDisableSwitch", "capability.switch", title:"Device", description:"This switch controls the alerts"
+    	paragraph "This switch controls the alerts"
+    	input "enableDisableSwitch", "capability.switch", title:"Device"
         paragraph "Times between which the alarm should alert."
         input "startTime", "time", title:"Start time"
         input "endTime", "time", title:"End time"
     }
     section("Presence") {
-    	input "people", "capability.presenceSensor", multiple:true, title:"People who must be present?", description:"The presence sensors which must be present for the arm/disarm alerts to trigger"
+    	paragraph "The presence sensors which must be present for the arm/disarm alerts to trigger"
+    	input "people", "capability.presenceSensor", multiple:true, title:"People who must be present?"
     }
 	section("Alert device") {
-    	input "alarm", "capability.switchLevel",  title:"Device to send alerts through", multiple:true, description:"Devices which arm/disarm alerts are sent through."
+    	paragraph "Devices which arm/disarm alerts are sent through."
+    	input "alarm", "capability.switchLevel",  title:"Device to send alerts through", multiple:true
     }
     section("Arm/Disarm system") {	
+    	paragraph "Alarm number (value*10) to set on Alert device)"
     	input "securityAlertNumber", "number", title:"Alarm number"
     }
 	section("Alarm switch") {
@@ -67,15 +71,15 @@ def alarmStatusHandler(evt) {
     {
     	case "away":
         	logDebug("Away mode")
-            setAlarm(3, securityAlertNumber)
+            setAlarm(repeatCount:3, alertNumber:securityAlertNumber)
         	break
         case "stay":
         	logDebug("Stay mode")
-            setAlarm(2, securityAlertNumber)
+            setAlarm(repeatCount:2, alertNumber:securityAlertNumber)
         	break
         case "off":
         	logDebug("Off")
-            setAlarm(1, securityAlertNumber)
+            setAlarm(repeatCount:1, alertNumber:securityAlertNumber)
         	break
         default:
         	logInfo("Unknown event value: ${evt.value}")
@@ -91,11 +95,11 @@ def switchHandler(evt) {
     {
     	case "on":
         	logDebug("On")
-            setAlarm(2, switchAlertNumber)
+            setAlarm(repeatCount:2, alertNumber:switchAlertNumber)
         	break
         case "off":
         	logDebug("Off")
-            setAlarm(1, switchAlertNumber)
+            setAlarm(repeatCount:1, alertNumber:switchAlertNumber)
         	break
         default:
         	logInfo("Unknown event value: ${evt.value}")
