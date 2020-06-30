@@ -17,7 +17,7 @@ import physicalgraph.zigbee.clusters.iaszone.ZoneStatus
 import physicalgraph.zigbee.zcl.DataType
 
 metadata {
-	definition(name: "SmartSense Multi Sensor", namespace: "smartthings", author: "SmartThings", runLocally: true, minHubCoreVersion: '000.017.0012', executeCommandsLocally: false, mnmn: "SmartThings", vid: "generic-contact-2") {
+	definition(name: "SmartSense Multi Sensor", namespace: "smartthings", author: "SmartThings", runLocally: true, minHubCoreVersion: '000.017.0012', executeCommandsLocally: false, mnmn: "SmartThings", vid: "SmartThings-smartthings-SmartSense_Multi_Sensor") {
 
 		capability "Three Axis"
 		capability "Battery"
@@ -29,11 +29,11 @@ metadata {
 		capability "Temperature Measurement"
 		capability "Health Check"
 
-		fingerprint inClusters: "0000,0001,0003,0402,0500,0020,0B05,FC02", outClusters: "0019", manufacturer: "CentraLite", model: "3320", deviceJoinName: "SmartThings Multipurpose Sensor"
-		fingerprint inClusters: "0000,0001,0003,0402,0500,0020,0B05,FC02", outClusters: "0019", manufacturer: "CentraLite", model: "3321", deviceJoinName: "SmartThings Multipurpose Sensor"
-		fingerprint inClusters: "0000,0001,0003,0402,0500,0020,0B05,FC02", outClusters: "0019", manufacturer: "CentraLite", model: "3321-S", deviceJoinName: "SmartThings Multipurpose Sensor" //Multipurpose Sensor
-		fingerprint inClusters: "0000,0001,0003,000F,0020,0402,0500,FC02", outClusters: "0019", manufacturer: "SmartThings", model: "multiv4", deviceJoinName: "SmartThings Multipurpose Sensor" //Multipurpose Sensor
-		fingerprint inClusters: "0000,0001,0003,0020,0402,0500,FC02", outClusters: "0019", manufacturer: "Samjin", model: "multi", deviceJoinName: "SmartThings Multipurpose Sensor" //Multipurpose Sensor
+		fingerprint inClusters: "0000,0001,0003,0402,0500,0020,0B05,FC02", outClusters: "0019", manufacturer: "CentraLite", model: "3320", deviceJoinName: "Multipurpose Sensor"
+		fingerprint inClusters: "0000,0001,0003,0402,0500,0020,0B05,FC02", outClusters: "0019", manufacturer: "CentraLite", model: "3321", deviceJoinName: "Multipurpose Sensor"
+		fingerprint inClusters: "0000,0001,0003,0402,0500,0020,0B05,FC02", outClusters: "0019", manufacturer: "CentraLite", model: "3321-S", deviceJoinName: "Multipurpose Sensor"
+		fingerprint inClusters: "0000,0001,0003,000F,0020,0402,0500,FC02", outClusters: "0019", manufacturer: "SmartThings", model: "multiv4", deviceJoinName: "Multipurpose Sensor"
+		fingerprint inClusters: "0000,0001,0003,0020,0402,0500,FC02", outClusters: "0019", manufacturer: "Samjin", model: "multi", deviceJoinName: "Multipurpose Sensor"
 
 	}
 
@@ -64,10 +64,10 @@ metadata {
 			])
 		}
 		section {
-			input "tempOffset", "number", title: "Temperature Offset", description: "Adjust temperature by this many degrees", range: "*..*", displayDuringSetup: false
+			input "tempOffset", "number", title: "Temperature offset", description: "Select how many degrees to adjust the temperature.", range: "*..*", displayDuringSetup: false
 		}
 		section {
-			input("garageSensor", "enum", title: "Do you want to use this sensor on a garage door?", description: "Tap to set", options: ["Yes", "No"], defaultValue: "No", required: false, displayDuringSetup: false)
+			input("garageSensor", "enum", title: "Use on garage door", description: "", options: ["Yes", "No"], defaultValue: "No", required: false, displayDuringSetup: false)
 		}
 	}
 
