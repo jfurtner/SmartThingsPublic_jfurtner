@@ -26,11 +26,15 @@ definition(
 
 
 preferences {
+	section('Description') {
+    	paragraph "Sends messages when inside vs. outside temperature has a difference. Can be used to remind you to shut or open windows/doors/etc."
+    }
 	section('Options') {	
     	input 'enabled', 'boolean', title:'Enabled', required:false, default:true
         input 'modes', 'mode', title: 'Run when mode is', required: false, multiple: true
     	input 'people', 'capability.presenceSensor', title: 'Send push notification when any of these people present', multiple: true, required: true
         input 'hoursBetweenUpdates', 'number', title: 'Number of hours between updates', defaultValue:1, range: '0..23', required: true
+        input 'minimumDifference', 'integer', title:'Minimum temperature difference', defaultValue:2, range:'0..100', required: true
         
     }
 	section("Outside") {
@@ -70,12 +74,8 @@ def initialize() {
     {
     	logDebug('Not scheduling checks')
     }
-    if (state.lastNotificationOutLTIn == null) {
-    	state.lastNotificationOutLTIn = initDate()
-    }
-    if (state.lastNotificationInLTOut == null) {
-    	state.lastNotificationInLTOut = initDate()
-    }
+    state.lastNotificationOutLTIn = initDate()
+    state.lastNotificationInLTOut = initDate()
 }
 
 def initDate() {
@@ -131,21 +131,24 @@ def checkTemperature(evt) {
     def last = 0
     def lastStr = ''
     def nowDate = now()
-    logDebug( "Checking temperatures: o:${outside} i:${inside} n:${nowDate}")
-    if (outside < inside)
+    def diff = Math.abs(outside-inside)
+    logDebug( "Checking temperatures: o:${outside} i:${inside} n:${nowDate} d:${diff}")
+    if (diff > minimumDifference)
     {
-        logDebug( 'Outside LT inside')
-        last = state.lastNotificationOutLTIn
-        msg = "Open windows, outside temperature (${outside}) lower than inside (${inside})"
-    }
-    else if (inside < outside)
-    {    
-        logDebug( 'Inside LT outside')
-        last = state.lastNotificationInLTOut
-        msg = "Close windows, outside temperature (${outside}) higher than inside (${inside})"
+        if (outside < inside)
+        {
+            logDebug( 'Outside LT inside')
+            last = state.lastNotificationOutLTIn
+            msg = "Open windows, outside temperature (${outside}) > ${minimumDifference} degrees lower than inside (${inside})"
+        }
+        else if (inside < outside)
+        {    
+            logDebug( 'Inside LT outside')
+            last = state.lastNotificationInLTOut
+            msg = "Close windows, outside temperature (${outside}) > ${minimumDifference} degrees higher than inside (${inside})"
 
-    }
-
+        }
+	}
     //logDebug( "tests complete: m:${msg} l:${last}")
 
     def addHours = hoursBetweenUpdates*3600000

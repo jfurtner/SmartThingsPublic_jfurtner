@@ -16,24 +16,29 @@ definition(
 
 
 preferences {
+	section("Description") {
+    	paragraph "Send arm/disarm alerts though 'level' switches to indicate when system state changes. Can also push alert when main alarm sensor is turned on."
+    }
 	section("Enable device") {
-    	input "enableDisableSwitch", "capability.switch", title:"Device"
+    	input "enableDisableSwitch", "capability.switch", title:"Device", description:"This switch controls the alerts"
+        paragraph "Times between which the alarm should alert."
         input "startTime", "time", title:"Start time"
         input "endTime", "time", title:"End time"
     }
     section("Presence") {
-    	input "people", "capability.presenceSensor", multiple:true, title:"People who must be present?"
+    	input "people", "capability.presenceSensor", multiple:true, title:"People who must be present?", description:"The presence sensors which must be present for the arm/disarm alerts to trigger"
     }
 	section("Alert device") {
-    	input "alarm", "capability.switchLevel",  title:"Device to send alerts through", multiple:true
+    	input "alarm", "capability.switchLevel",  title:"Device to send alerts through", multiple:true, description:"Devices which arm/disarm alerts are sent through."
     }
-	section("Alarm switch") {
-		input "switchDevice", "capability.switch", multiple:true, title:"Devices"
-        input "switchAlertNumber", "number", title:"Alarm number"
-	}
-    section("Alarm system") {	
+    section("Arm/Disarm system") {	
     	input "securityAlertNumber", "number", title:"Alarm number"
     }
+	section("Alarm switch") {
+    	paragraph "When any switch is set on, also send alert to alert device."
+		input "switchDevice", "capability.switch", multiple:true, title:"Devices", required:false
+        input "switchAlertNumber", "number", title:"Alarm number"
+	}
 }
 
 public def installed() {
