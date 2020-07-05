@@ -28,20 +28,20 @@ definition(
 
 preferences {
 	section("Motion sensors") {
+    	paragraph "Motion on these sensors during the selected timeframe will cause the wake command to be sent"
 		input "motionSensors", "capability.motionSensor", required: true, title: "Sensors", multiple: true
 	}
     section("Presence sensor") {
-    	input "person", "capability.presenceSensor", required: true, title:"Who must be present to trigger?", multiple: false
+    	input "person", "capability.presenceSensor", required: true, title:"Who must be present to trigger", multiple: false
     }
     section("Limits") {
-    	//input "modesToRunIn", "mode", title:"Select mode(s)", required:true,multiple:true
     	input "startTime", "time", title:"From",required:true
         input "endTime", "time", title:"To",required:true
         input "daysOfWeek", "enum",title:"Days of week",required:true,multiple:true,options:["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"]
     }
-    section("Computer") {
-    	input "computerMacAddress","text",title:"Computer MAC address (12 hex digits)",required:true
-        input "secureCode","text",title:"Secure code (12 hex digits)",required:false
+    section("Computer/Device to wake") {
+    	input "computerMacAddress","text",title:"Computer MAC address (12 hex digits)",required:true,description:"001a2b3c4d5e"
+        input "secureCode","text",title:"Secure code (12 hex digits)",required:false,description:"(optional) 009f8e7d6c5b"
     }
     section('Debugging') {
     	input "debugEnabled", 'boolean', title:'Debug messages enabled', required:false, default:false
