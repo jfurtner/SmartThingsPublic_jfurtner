@@ -17,31 +17,36 @@ definition(
 
 preferences {
 	section("Description") {
-    	paragraph "Send arm/disarm alerts though 'level' switches to indicate when system state changes. Can also push alert when main alarm sensor is turned on."
+    	paragraph "Send arm/disarm chime though level switches to indicate when system state changes. Can also notify with chime when external alarm system is turned on."
     }
-	section("Enable device") {
-    	paragraph "This switch controls the alerts"
+	section("This switch controls the alerts") {
     	input "enableDisableSwitch", "capability.switch", title:"Device"
-        paragraph "Times between which the alarm should alert."
+    }
+    section("Times between which the alarm should send notifications") {
         input "startTime", "time", title:"Start time"
         input "endTime", "time", title:"End time"
     }
     section("Presence") {
-    	paragraph "The presence sensors which must be present for the arm/disarm alerts to trigger"
-    	input "people", "capability.presenceSensor", multiple:true, title:"People who must be present?"
+    	paragraph "The presence sensors which must be present for the arm/disarm alerts to trigger. At least one of these must be present for the notifications to be sent."
+    	input "people", "capability.presenceSensor", multiple:true, title:"People who must be present"
     }
-	section("Alert device") {
-    	paragraph "Devices which arm/disarm alerts are sent through."
+	section("Hub state changes") {
+    	paragraph "Chime devices which arm/disarm notifications are sent through."
     	input "alarm", "capability.switchLevel",  title:"Device to send alerts through", multiple:true
-    }
-    section("Arm/Disarm system") {	
     	paragraph "Alarm number (value*10) to set on Alert device)"
     	input "securityAlertNumber", "number", title:"Alarm number"
+    	paragraph "The number of times to repeat for arm/disarm/stay state changes"
+        input "hubRepeatDisarm", "number", range:"1..10",title:"Disarm/Home repeat",defaultValue:1
+        input "hubRpeatStay", "number", range:"1..10",title:"Stay/Night repeat",defaultValue:2
+        input "hubRepeatArm", "number", range:"1..10",title:"Arm/Away repeat",defaultValue:3
     }
-	section("Alarm switch") {
-    	paragraph "When any switch is set on, also send alert to alert device."
-		input "switchDevice", "capability.switch", multiple:true, title:"Devices", required:false
-        input "switchAlertNumber", "number", title:"Alarm number"
+	section("External alarm integration") {
+    	paragraph "When integrating with external alarm systems, can also alert when the alarm system is armed or disarmed. Assumes the SmartThings representation of the external alarm system is a on/off switch."
+		input "externalAlarmMainSwitch", "capability.switch", multiple:true, title:"External alarm devices", required:false
+        input "externalAlarmAlertNumber", "number", title:"Alarm number", required:false, description:"4"
+        paragraph "The number of times to repeat for arm/disarm (switch on/off) state changes"
+        input "externalRepeatDisarm", "number", range:"1..10",title:"Disarm repeat",required:false, description:"1"
+        input "externalRepeatArm", "number", range:"1..10",title:"Arm repeat",required:false, description:"2"
 	}
 }
 
@@ -61,7 +66,7 @@ public def updated() {
 
 public def initialize() {
 	logTrace("Initialize, subscribing to events")
-	subscribe(switchDevice, "switch", switchHandler)    
+	subscribe(externalAlarmMainSwitch, "switch", switchHandler)    
     subscribe(location, "alarmSystemStatus", alarmStatusHandler)
 }
 
@@ -71,15 +76,15 @@ def alarmStatusHandler(evt) {
     {
     	case "away":
         	logDebug("Away mode")
-            setAlarm(repeatCount:3, alertNumber:securityAlertNumber)
+            setAlarm(hubRepeatArm, securityAlertNumber)
         	break
         case "stay":
         	logDebug("Stay mode")
-            setAlarm(repeatCount:2, alertNumber:securityAlertNumber)
+            setAlarm(hubRepeatStay, securityAlertNumber)
         	break
         case "off":
         	logDebug("Off")
-            setAlarm(repeatCount:1, alertNumber:securityAlertNumber)
+            setAlarm(hubRepeatDisarm, securityAlertNumber)
         	break
         default:
         	logInfo("Unknown event value: ${evt.value}")
@@ -95,11 +100,11 @@ def switchHandler(evt) {
     {
     	case "on":
         	logDebug("On")
-            setAlarm(repeatCount:2, alertNumber:switchAlertNumber)
+            setAlarm(externalRepeatArm, externalAlarmAlertNumber)
         	break
         case "off":
         	logDebug("Off")
-            setAlarm(repeatCount:1, alertNumber:switchAlertNumber)
+            setAlarm(externalRepeatDisarm, externalAlarmAlertNumber)
         	break
         default:
         	logInfo("Unknown event value: ${evt.value}")
