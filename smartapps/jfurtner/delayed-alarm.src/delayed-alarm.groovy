@@ -24,22 +24,33 @@ definition(
     iconX3Url: "https://s3.amazonaws.com/smartapp-icons/SafetyAndSecurity/Cat-SafetyAndSecurity@3x.png")
 
 preferences {
-    section('Master') {
+    section('Master alarm') {
+    	paragraph("This controls all the alarms. When this is turned on, the overall process starts")
         input "masterAlarm", "capability.alarm",multiple:false,title:"Master alarm switch"
     }
-    section('Sirens') {
-        input "chimes", "capability.switchLevel", multiple:true, title:"Chime dimmer switches"
-        input "chimeNumber", "number", range:"1..10", title:"Chime number to use"
-        input "sirensLevel1", "capability.alarm", multiple:true, title:"Siren 1 alarms", required:false
-        input "sirensLevel2", "capability.alarm", multiple:true, title:"Siren 2 alarms", required:false
+    section("Level 1 chimes") {
+    	paragraph("These chimes are sent alerts to tell people that something happened. These are set immediately when the master alarm is turned on.")
+        input "level1Chimes", "capability.switchLevel", multiple:true, title:"Chime dimmer switches"
+        input "level1ChimeNumber", "number", range:"1..10", title:"Chime number to use"
     }
-    section('Delays') {
-        input "delaySiren1", "number", range:"1..300",title:"Siren 1 delay", description:"Delay between chime and when first siren triggered in seconds"
-        input "delaySiren2", "number", range:"0..1800",title:"Siren 2 delay",description:"Delay between first siren and when second siren triggered in seconds"
-        input "alarmDuration", "number", range:"0..300", title:"Duration of all alarms in minutes"
+    section("Level 2 sirens") {
+    	paragraph("These sirens are set on after the delay.")
+        input "level2Delay", "number", range:"1..300",title:"Siren 1 delay", description:"seconds"
+        input "level2Sirens", "capability.alarm", multiple:true, title:"Siren 1 alarms", required:false
+    }
+    section("Level 3 sirens") {
+    	paragraph("These sirens are set on after a delay in seconds from when level 2 sirens are set on.")
+        input "level3Delay", "number", range:"0..1800",title:"Siren 2 delay",description:"seconds"
+        input "level3Sirens", "capability.alarm", multiple:true, title:"Siren 2 alarms", required:false
+    }
+    section("Duration") {
+		paragraph("This sets the overall duration of all alarms in minutes")
+        input "alarmDuration", "number", range:"0..300", title:"Duration of all alarms in minutes", description:"minutes"
     }
     section("Send Notifications?") {
+    	paragraph("Send a SmartThings notification")
         input("notificationMessage", 'text', title:'Notification message', required:false)
+        paragraph("Send a text message")
         input "phone", "phone", title: "Warn with text message (optional)", description: "Phone Number", required: false
     }
     section('Debugging') {
@@ -74,7 +85,7 @@ def alarmHandler(evt){
     }
     else
     {    
-    	startChimes()
+    	startLevel1Chimes()
     }
 }
 
@@ -85,31 +96,31 @@ def allOff(){
     	logTrace("Disabling all alarms")
         logTrace('unschedule')
         unschedule()
-        if (sirensLevel1 != null)
+        if (level2Sirens != null)
         {
-        	logTrace('sirensLevel1 off')
-        	sirensLevel1.off()
+        	logTrace('level2Sirens off')
+        	level2Sirens.off()
         }
-        if (sirensLevel2 != null)
+        if (level3Sirens != null)
         {
-        	logTrace('sirensLevel2 off')
-        	sirensLevel2.off()
+        	logTrace('level3Sirens off')
+        	level3Sirens.off()
         }
         logTrace('chimes off')
-        chimes.off()
+        level1Chimes.off()
 
 		state.alarmStarted = ''
     }
 }
 
-def startChimes(){
+def startLevel1Chimes(){
 	if (state.alarmStarted == '')
     {
-        logTrace("Starting chimes $chimeNumber")
+        logTrace("Starting chimes $level1ChimeNumber")
         state.alarmStarted = new Date()
-        chimes.setLevel(chimeNumber*10)
-        logTrace("Delay for $delaySiren1 seconds")
-        runIn(delaySiren1, startSiren1)
+        level1Chimes.setLevel(level1ChimeNumber*10)
+        logTrace("Delay for $level2Delay seconds")
+        runIn(level2Delay, startLevel2Sirens)
         // check that Contact Book is enabled and recipients selected
  		if (phone) { // check that the user did select a phone number
             sendSms(phone, notificationMessage)
@@ -121,26 +132,26 @@ def startChimes(){
     }
 }
 
-def startSiren1(){
-	logTrace("startSiren1")
+def startLevel2Sirens(){
+	logTrace("startLevel2Sirens")
     logTrace("Alarm: ${masterAlarm.alarm}")
     if (state.alarmStarted != '')
     {
         logTrace("Starting siren 1")
-        if (sirensLevel1 != null)
-	        sirensLevel1.both()
-        runIn(delaySiren2, startSiren2)
+        if (level2Sirens != null)
+	        level2Sirens.both()
+        runIn(level3Delay, startLevel3Sirens)
     }
 }
 
-def startSiren2(){
-	logTrace('startSiren2')
+def startLevel3Sirens(){
+	logTrace('startLevel3Sirens')
     logTrace("Alarm: ${masterAlarm.alarm}")
     if (state.alarmStarted != '')
     {
         logTrace("Starting siren 2")
-        if (sirensLevel2 != null)
-	        sirensLevel2.both()
+        if (level3Sirens != null)
+	        level3Sirens.both()
         runIn(alarmDuration*60, allOff)
 	}
 }
