@@ -37,7 +37,7 @@ preferences {
     	input "securityAlertNumber", "number", title:"Alarm number"
     	paragraph "The number of times to repeat for arm/disarm/stay state changes"
         input "hubRepeatDisarm", "number", range:"1..10",title:"Disarm/Home repeat",defaultValue:1
-        input "hubRpeatStay", "number", range:"1..10",title:"Stay/Night repeat",defaultValue:2
+        input "hubRepeatStay", "number", range:"1..10",title:"Stay/Night repeat",defaultValue:2
         input "hubRepeatArm", "number", range:"1..10",title:"Arm/Away repeat",defaultValue:3
     }
 	section("External alarm integration") {
