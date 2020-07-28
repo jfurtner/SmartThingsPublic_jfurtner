@@ -3,7 +3,6 @@ metadata {
     
     capability "Configuration"
     capability "Button"
-    //capability "Speech Recognition"
     
     attribute 'logEvent', 'string'
     attribute 'lastButtonPushed', 'number'
@@ -41,7 +40,7 @@ metadata {
 }
 
 def parse(String description) {	       	            
-	logDebug "** KFB01 parse received ** $description"
+	logDebug "** KFB01 parse received ** [$description]"
     if (description?.startsWith('enroll request')) {        
         List cmds = enrollResponse()
         logDebug "enroll response: ${cmds}"
@@ -49,9 +48,13 @@ def parse(String description) {
         return result    
     } else if (description?.startsWith('catchall:')) {
         def msg = zigbee.parse(description)
-        //logDebug msg
-        return buttonPush(msg.data[0])
-    }   
+        logDebug "MSG: ${msg}"
+        return buttonPush(msg.data[3])
+    }
+    else
+    {
+    	logDebug "Unmatched"
+    }
 }
 
 def buttonPush(button){
@@ -64,17 +67,17 @@ def buttonPush(button){
         //Unlock - ST Button 3
         name = "3"
         def currentST = device.currentState("button3")?.value
-        //logDebug "Unlock button Pushed"           
+        log.info("Unlock button (3) pushed")
     } else if (button == 2) {
     	//Home - ST Button 2
         name = "2"
         def currentST = device.currentState("button2")?.value
-        //logDebug "Home button pushed"        
+        log.info("Home button (2) pushed")
     } else if (button == 3) {
         //Lock ST Button 1
         name = "1"
      	def currentST = device.currentState("button")?.value
-        //logDebug "Lock Button pushed"         
+        log.info("Lock button (1) pushed")
     } 
 
     def result =
