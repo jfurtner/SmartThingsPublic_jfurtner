@@ -1,3 +1,4 @@
+# RO - no longer using smartthings
 # Cloned - jfurtner custom
 
 # SmartThings Public GitHub Repo
